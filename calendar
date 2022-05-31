@@ -1,0 +1,169 @@
+#include <iostream>
+
+using namespace std;
+
+
+int day_of_week (int year, int month, int day)
+{
+    int between = abs(1900 - year);
+    int visokos = 0;
+    int begin_day; //день недели
+    for (int i = 1900; i < year; i++)
+    {
+        if ((i % 4 == 0) && (i % 100 != 0) || (i % 400 == 0))
+            visokos++; 
+    }
+    between += visokos;
+    begin_day = 1 + between % 7; //понедельник 1900 + сдвиг по ост годам
+    int ar[11]; 
+    int nextmonth365[11] = {3, 0, 3, 2, 3, 2, 3, 3, 2, 3, 2}; // сдвиги по месяцам в год
+    int nextmonth366[11] = {3, 1, 3, 2, 3, 2, 3, 3, 2, 3, 2};
+    int days_in_year; //сколько в году
+    if (year % 4 == 0)
+    {
+        for (int i = 0; i < 11; i++)
+            ar[i] = nextmonth366[i];
+    }
+    else
+    {
+        for (int i = 0; i < 11; i++)
+            ar[i] = nextmonth365[i];
+    }
+    int l = 0; 
+    while (l < month - 1) //дошли до месяца нужного
+    {
+        begin_day = (begin_day + ar[l]) % 7;
+        l++;
+    }
+    begin_day = (begin_day + (day - 1) % 7) % 7;
+    if (begin_day == 0)
+        begin_day = 7;
+    return begin_day;
+}
+
+int yearday (int year, int month, int day)
+{
+    int day_of_year = 0; //по счёту в году
+    int arr[12];
+    int year365[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}; 
+    int year366[12] = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    if (year % 4 == 0)
+    {
+        for (int i = 0; i < 12; i++)
+            arr[i] = year366[i];
+    }
+    else
+    {
+        for (int i = 0; i < 12; i++)
+            arr[i] = year365[i];
+    }
+    int l = 0; 
+    while (l < month - 1) //дошли до месяца нужного
+    {
+        day_of_year = day_of_year + arr[l];
+        l++;
+    }
+    day_of_year += day;
+    return day_of_year;
+}
+
+int result (int begin_day1, int begin_day2, int* workdays, int kol_weekdays, int day_of_year1, int day_of_year2, int year1, int year2, int days_in_year)
+{
+    int count_workdays = 0;
+    for (int i = begin_day1; i <= 7; i++)
+        for (int k = 0; k < 7 - kol_weekdays; k++)
+            if (i == workdays[k])
+                count_workdays++;
+    day_of_year1 += 7 - begin_day1;
+    int between;
+    if (year1 == year2)
+    {
+        between = day_of_year2 - day_of_year1;
+    }
+    else
+    {
+        between = (days_in_year - day_of_year1) + day_of_year2 + 1;
+        year1++;
+        while (year1 < year2)
+        {
+            if ((year1 % 4 == 0) && (year1 % 100 != 0) || (year1 % 400 == 0))
+                between += 366;
+            else
+                between += 365;
+            year1++;
+        }
+    }
+    count_workdays += between/7 * (7 - kol_weekdays);
+    if (between/7 > 1)
+    {
+        for (int i = 1; i <= begin_day2; i++)
+            for (int k = 0; k < 7 - kol_weekdays; k++)
+                if (i == workdays[k])
+                    count_workdays++;
+    }
+    return count_workdays;
+}
+
+int main()
+{
+    cout << "Введите дату начала отсчёта (дд.мм.гггг): ";
+    string date1;
+    getline (cin, date1);
+    char a[10];
+    for (int i = 0; i < 10; i++)
+        a[i] = date1[i];
+    int day1 = (a[0] - 48)*10 + (a[1] - 48);
+    int month1 = (a[3] - 48)*10 + (a[4] - 48);
+    int year1 = (a[6] - 48)*1000 + (a[7] - 48)*100 + (a[8] - 48)*10 + (a[9] - 48);
+    int days_in_year;
+    if ((year1 % 4 == 0) && (year1 % 100 != 0) || (year1 % 400 == 0))
+        days_in_year = 366;
+    else
+        days_in_year = 365;
+    int begin_day1 = day_of_week (year1, month1, day1);
+    int day_of_year1 = yearday (year1, month1, day1);
+    cout << "Введите дату конца отсчёта (дд.мм.гггг): ";
+    string date2;
+    getline (cin, date2);
+    for (int i = 0; i < 10; i++)
+        a[i] = date2[i];
+    int day2 = (a[0] - 48)*10 + (a[1] - 48);
+    int month2 = (a[3] - 48)*10 + (a[4] - 48);
+    int year2 = (a[6] - 48)*1000 + (a[7] - 48)*100 + (a[8] - 48)*10 + (a[9] - 48);
+    int begin_day2 = day_of_week (year2, month2, day2);
+    int day_of_year2 = yearday (year2, month2, day2);
+    cout << "Введите выходные через пробелы в цифровом формате (пн = 1, вт = 2...) : ";
+    string wkd;
+    getline(cin, wkd);
+    int kol_weekdays = wkd.length() / 2 + 1;
+    int weekdays[kol_weekdays]; //массив номеров выходных
+    char x [wkd.length()];
+    for (int i = 0; i < wkd.length(); i++)
+        x[i] = wkd[i];
+    int k = 0;
+    for (int i = 0; i < kol_weekdays; i++)
+    {
+        weekdays[i] = x[k] - 48;
+        k += 2;
+    }
+    int workdays[7 - kol_weekdays];
+    int l = 0;
+    for (int i = 1; i <= 7; i++)
+    {
+        int n = 0;
+        for (int k = 0; k < kol_weekdays; k++)
+        {
+            if (i != weekdays[k])
+                n++; 
+        }
+        if (n == kol_weekdays)
+        {   
+            workdays[l] = i;
+            if (l < 7 - kol_weekdays)
+                l++;
+        }
+    }
+    int count_workdays = result (begin_day1, begin_day2, workdays, kol_weekdays, day_of_year1, day_of_year2, year1, year2, days_in_year);
+    cout << "Количество рабочих дней между датами = " << count_workdays;
+    return 0;
+} 
