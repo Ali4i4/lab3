@@ -18,7 +18,7 @@ int day_of_week (int year, int month, int day)
     int nextmonth365[11] = {3, 0, 3, 2, 3, 2, 3, 3, 2, 3, 2}; // сдвиги по месяцам в год
     int nextmonth366[11] = {3, 1, 3, 2, 3, 2, 3, 3, 2, 3, 2};
     int days_in_year; //сколько в году
-    if (year % 4 == 0)
+    if ((year % 4 == 0) && (year % 100 != 0) || (year % 400 == 0))
     {
         for (int i = 0; i < 11; i++)
             ar[i] = nextmonth366[i];
